@@ -7,6 +7,7 @@ import moment from 'moment';
 import { Model } from "objection";
 import { Check } from './lib/general/Check';
 import { Anuncios } from './lib/general/Anuncios';
+import { Donos } from './lib/general/Donos';
 import ActionLogMiddleware from './middlewares/ActionLog';
 
 const koaServer = new koa();
@@ -57,3 +58,7 @@ koaServer.use(checkRouter.routes())
 const anunciosRouter = new Router({ prefix: '/anuncios' })
 Anuncios(anunciosRouter)
 koaServer.use(anunciosRouter.routes())
+
+const donosRouter = new Router({ prefix: '/donos' })
+Donos(donosRouter)
+koaServer.use(donosRouter.routes())
