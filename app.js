@@ -20,8 +20,8 @@ server.setTimeout(0);
 const knex = Knex(require('./knexfile'))
 Model.knex(knex)
 
-server.listen(process.env.PORT || 8111)
-console.log('Server running in http://localhost:' + (process.env.PORT || 8111))
+server.listen(8181)
+console.log('Server running in http://localhost:' + (8181))
 
 koaServer.use(body())
 koaServer.use(async (ctx, next) => {
