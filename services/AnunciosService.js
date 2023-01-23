@@ -1,4 +1,3 @@
-import { Donos } from '../lib/models/Donos'
 import { Anuncios } from '../lib/models/Anuncios'
 import { DonosAnuncios } from '../lib/models/DonosAnuncios'
 
@@ -22,9 +21,8 @@ class AnunciosService{
             try{
 
                 if((params.donos_anuncios || []).length > 0) {
-                    await Anuncios.query().insertAndFetch({
-                        ...params,
-                    }).then(async (data) => {
+                    await Anuncios.query().insertAndFetch(params)
+                    .then(async (data) => {
 
                         await DonosAnuncios.query().insertAndFetch(params.donos_anuncios.map(item => ({
                             anuncios_id: data.id,
@@ -44,10 +42,24 @@ class AnunciosService{
     static editAnuncio({anuncioId, params}){
         return new Promise(async (resolve, reject) => {
             try{
-                const anuncio = await Anuncios.query()
-                .patchAndFetchById(anuncioId, params)
+                const anuncio = await Anuncios.query().eager("donos_anuncios").findById(anuncioId)
 
-                resolve(anuncio)
+                if (
+                    ((params.donos_anuncios || []).length > 0) ||
+                    ((anuncio.donos_anuncios || []).length > 0)
+                ) {
+                    await DonosAnuncios.query().delete().where("anuncios_id", anuncioId);
+
+                    if((params.donos_anuncios || []).length > 0) await DonosAnuncios.query()
+                    .insert(params.donos_anuncios.map(item => ({
+                      anuncios_id: anuncio.id,
+                      donos_id: item.donos_id
+                    })));
+                } 
+
+                await Anuncios.query().patchAndFetchById(anuncioId, params);
+
+                resolve("Editado com sucesso!")
             }catch(err){
                 reject(err)
             }
@@ -57,6 +69,20 @@ class AnunciosService{
     static deleteAnuncio({anuncioId}){
         return new Promise(async (resolve, reject) => {
             try{
+                const anuncio = await Anuncios.query().eager("donos_anuncios").findById(anuncioId)
+
+                if (
+                    ((anuncio.donos_anuncios || []).length > 0)
+                ) {
+                    await DonosAnuncios.query().delete().where("anuncios_id", anuncioId);
+
+                    if((anuncio.donos_anuncios || []).length > 0) await DonosAnuncios.query()
+                    .insert(anuncio.donos_anuncios.map(item => ({
+                      anuncios_id: anuncio.id,
+                      donos_id: item.donos_id
+                    })));
+                } 
+
                 await Anuncios.query().deleteById(anuncioId)
 
                 resolve("Deletado com sucesso!")
